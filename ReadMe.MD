@@ -1,6 +1,4 @@
-<div align="center">
-  <img src="https://github.com/oarixsapkota/LABA/blob/main/img/lba.png"><br>
-</div>
+![Banner](./img/lba.png)
 
 A lightweight, single-header C library that implements a Linked Arena Bump Allocator.
 
