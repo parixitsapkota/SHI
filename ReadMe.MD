@@ -1,6 +1,8 @@
-# LABA: Linked Arena Bump Allocator
+<div align="center">
+  <img src="https://github.com/oarixsapkota/laba/blob/master/img/laba.jpg"><br>
+</div>
 
-**LABA** is a lightweight, single-header C library that implements a Linked Arena Bump Allocator.
+A lightweight, single-header C library that implements a Linked Arena Bump Allocator.
 
 It provides extremely fast memory allocation by "bumping" a pointer across a pre-allocated chunk of linked memory chunks. When the chunk is full, LABA automatically allocates a new chunk and links it to the previous one. This eliminates heap fragmentation, guarantees excellent cache locality for iterations, and allows you to free an entire data structure with a single function call.
 
