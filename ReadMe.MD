@@ -1,26 +1,22 @@
 <div align="center">
-  <img src="https://github.com/oarixsapkota/laba/blob/master/img/laba.jpg"><br>
+  <img src="https://github.com/oarixsapkota/LABA/blob/main/img/lba.png"><br>
 </div>
 
 A lightweight, single-header C library that implements a Linked Arena Bump Allocator.
 
 It provides extremely fast memory allocation by "bumping" a pointer across a pre-allocated chunk of linked memory chunks. When the chunk is full, LABA automatically allocates a new chunk and links it to the previous one. This eliminates heap fragmentation, guarantees excellent cache locality for iterations, and allows you to free an entire data structure with a single function call.
 
-## Features
 
-* **Single-Header Design:** Drop `laba.h` into your project and you are ready to go. No complex build systems required.
-* **O(1) Allocations:** Pushing data into the arena is as fast as incrementing an offset.
-* **Fragmentation:** Fragmentation associated with calling `malloc` for hundreds of small, individual nodes is reduced.
-* **Instant Cleanup:** Freeing the arena cleans up all allocated nodes instantly.
 
 ---
 
 ## Usage
+* **Single-Header Design:**  
+`wget https://raw.githubusercontent.com/oarixsapkota/LABA/refs/heads/main/laba.h`  
+into your project and you are ready to go. No complex build systems required.  
 
 Because LABA is an STB-style single-header library, you need to implement it in exactly **one** C file to avoid linker errors.
-
-1. Copy `laba.h` into your project.
-2. In exactly **one** `.c` file, define `LABA_IMPLEMENTATION` before including the header.
+- In exactly **one** `.c` file, define `LABA_IMPLEMENTATION` before including the header.
 ```c
 #define LABA_IMPLEMENTATION
 #include "laba.h"
