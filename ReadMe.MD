@@ -1,4 +1,4 @@
-![Banner](./img/lba.png)
+![Banner](./img/shi.png)
 
 SINGLE-HEADER-IMPLEMENTATION library
 
