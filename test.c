@@ -79,15 +79,16 @@ int main(void) {
     shi_opa_push(pool, word);
     ++i;
   }
+  Word word = (Word){NULL, 0, 0};
+  shi_opa_push(pool, word);
 
   i = 0;
-  Word *word = shi_opa_index(pool_head, i);
-  while (word != NULL) {
-    if (i != 0) {
-      printf("Word : %s\n", word->word);
-      free(word->word);
-    }
-    word = shi_opa_index(pool_head, i);
+  for (;;) {
+    Word *word = shi_opa_index(pool_head, i);
+    if (!word->word)
+      break;
+    printf("Word : %s\n", word->word);
+    free(word->word);
     ++i;
   }
 
