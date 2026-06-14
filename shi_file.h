@@ -10,8 +10,8 @@
  * #include "shi_file.h"
  */
 
-#ifndef SHI_OPA_H
-#define SHI_OPA_H
+#ifndef SHI_FILE_H
+#define SHI_FILE_H
 
 #include <stddef.h>
 
@@ -25,7 +25,7 @@ void write_file(const char *path, const char *buffer, const char *mode);
 #define shi_file_create(path) shi_file_append(path, NULL);
 #define shi_file_remove(path) remove(path)
 
-#endif
+#endif //SHI_FILE_H
 
 // =================
 // TESTING & EXAMPLE
