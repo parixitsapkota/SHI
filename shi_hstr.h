@@ -35,10 +35,10 @@ size_t shi_hstr_fnv1a_seed(const char *str, uint32_t seed);
   printf("%s => %lu\n", str, shi_hstr_fnv1a_seed(str, seed))
 
 int main() {
-  printf("Normal hstr\n")
+  printf("Normal hstr\n");
   test_fnv1a("indentifier1");
   test_fnv1a("indentifier2");
-  printf("seeded hstr\n")
+  printf("seeded hstr\n");
   test_fnv1a_seed("indentifier1", 99);
   test_fnv1a_seed("indentifier2", 99);
   return 0;
