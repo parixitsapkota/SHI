@@ -25,7 +25,7 @@ void write_file(const char *path, const char *buffer, const char *mode);
 #define shi_file_create(path) shi_file_append(path, NULL);
 #define shi_file_remove(path) remove(path)
 
-#endif //SHI_FILE_H
+#endif // SHI_FILE_H
 
 // =================
 // TESTING & EXAMPLE
