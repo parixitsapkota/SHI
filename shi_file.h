@@ -33,13 +33,14 @@ void write_file(const char *path, const char *buffer, const char *mode);
 #ifdef SHI_TEST
 
 #include <stdio.h>
+#include <stdlib.h>
 #define SHI_FILE_IMPLEMENTATION
 
 int main() {
   size_t bytes = 0;
   char *read_buffer = shi_file_read("shi_file.h", &bytes);
   printf("Read %lu bytes.\n", bytes);
-  (void)read_buffer;
+  free(read_buffer);
 
   shi_file_write("build/test.txt", "first line.");
 
