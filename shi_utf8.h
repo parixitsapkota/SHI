@@ -34,6 +34,7 @@ Rune shi_utf8_decode_3byte(Uchar b1, Uchar b2, Uchar b3);
 Rune shi_utf8_decode_4byte(Uchar b1, Uchar b2, Uchar b3, Uchar b4);
 
 Rune *shi_utf8_decode(const Uchar *buffer, size_t *len);
+Uchar *shi_utf8_encode(const Rune *buffer, size_t *len);
 
 #endif // SHI_UTF8_H
 
@@ -45,6 +46,7 @@ Rune *shi_utf8_decode(const Uchar *buffer, size_t *len);
 #define SHI_UTF8_IMPLEMENTATION
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // U+000041 U+0000F6 U+0020AC U+01F600
@@ -57,12 +59,27 @@ void utf8_print(const Rune *utf8, size_t len) {
   }
 }
 
+void utf8_print_units(const Uchar *buf, size_t len) {
+  if (!buf)
+    return;
+  for (size_t i = 0; i < len; ++i) {
+    printf("%02X ", buf[i]);
+  }
+  printf("\n");
+}
+
 int main(void) {
   Uchar *buffer = (Uchar *)"\x41\xC3\xB6\xE2\x82\xAC\xF0\x9F\x98\x80";
   size_t len = strlen((char *)buffer);
-  Rune *utf8 = shi_utf8_decode(buffer, &len);
-  utf8_print(utf8, len);
-  // free(utf8);
+  Rune *runes = shi_utf8_decode(buffer, &len);
+  utf8_print(runes, len);
+
+  size_t enc_len = len;
+  Uchar *reencoded = shi_utf8_encode(runes, &enc_len);
+  utf8_print_units(reencoded, enc_len);
+
+  free(runes);
+  free(reencoded);
   return 0;
 }
 
@@ -150,6 +167,61 @@ Rune *shi_utf8_decode(const Uchar *buffer, size_t *len) {
 
   *len = j;
   return utf8;
+}
+
+Uchar *shi_utf8_encode(const Rune *buffer, size_t *len) {
+  if (!buffer || !len)
+    return NULL;
+
+  size_t rune_count = *len;
+  size_t unit_count = 0;
+
+  for (size_t i = 0; i < rune_count; ++i) {
+    Rune r = buffer[i];
+    if (r <= 0x7F) {
+      unit_count += 1;
+    } else if (r <= 0x7FF) {
+      unit_count += 2;
+    } else if (r <= 0xFFFF) {
+      unit_count += 3;
+    } else if (r <= 0x10FFFF) {
+      unit_count += 4;
+    }
+    // Runes above 0x10FFFF are invalid Unicode and are dropped (0 bytes).
+  }
+
+  Uchar *out = (Uchar *)malloc(sizeof(Uchar) * unit_count);
+  *len = unit_count;
+  if (!out)
+    return NULL;
+
+  size_t j = 0;
+  for (size_t i = 0; i < rune_count; ++i) {
+    Rune r = buffer[i];
+
+    if (r <= 0x7F) {
+      out[j++] = (Uchar)r;
+    } else if (r <= 0x7FF) {
+      // 110xxxxx 10xxxxxx
+      out[j++] = (Uchar)(0xC0 | (r >> 6));
+      out[j++] = (Uchar)(0x80 | (r & 0x3F));
+    } else if (r <= 0xFFFF) {
+      // 1110xxxx 10xxxxxx 10xxxxxx
+      out[j++] = (Uchar)(0xE0 | (r >> 12));
+      out[j++] = (Uchar)(0x80 | ((r >> 6) & 0x3F));
+      out[j++] = (Uchar)(0x80 | (r & 0x3F));
+    } else if (r <= 0x10FFFF) {
+      // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+      out[j++] = (Uchar)(0xF0 | (r >> 18));
+      out[j++] = (Uchar)(0x80 | ((r >> 12) & 0x3F));
+      out[j++] = (Uchar)(0x80 | ((r >> 6) & 0x3F));
+      out[j++] = (Uchar)(0x80 | (r & 0x3F));
+    }
+    // Invalid runes (> 0x10FFFF) are silently skipped, matching the
+  }
+
+  *len = j;
+  return out;
 }
 
 #endif // SHI_UTF8_IMPLEMENTATION
