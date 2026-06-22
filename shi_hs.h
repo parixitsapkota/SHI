@@ -62,6 +62,11 @@ int del_from_hash_set(__hash_set__ *set, const char *key);
 /// Frees the entire hash set, including all chained entries and their keys.
 void free_hash_set(__hash_set__ *set);
 
+/// Frees every stored value with `value_free' (NULL to skip), then frees
+/// the set itself. Use when the set owns its values (e.g. interned strings
+/// stored as values), to avoid having callers walk entries by hand.
+void free_hash_set_all(__hash_set__ *set, void (*value_free)(void *));
+
 // macro interface.
 #define SHI_HS __hash_set__
 
@@ -80,6 +85,8 @@ void free_hash_set(__hash_set__ *set);
 #define shi_hs_del(set, key) del_from_hash_set((SHI_HS *)set, key)
 /// Destroy Hash Set.
 #define shi_hs_free(set) free_hash_set((SHI_HS *)set)
+/// Free Hash Set and every value in it via `fn' (NULL to skip value frees).
+#define shi_hs_free_all(set, fn) free_hash_set_all((SHI_HS *)set, fn)
 
 #endif // SHI_HS_H
 
@@ -113,7 +120,6 @@ int main(void) {
   shi_hs_del(set, "two");
   printf("has \"two\" after delete: %d\n", shi_hs_has(set, "two"));
 
-  // Table grows automatically as load factor is exceeded.
   printf("bucket_cap before bulk insert: %zu\n", set->bucket_cap);
   for (int i = 0; i < 100; ++i) {
     char namebuf[16];
@@ -123,7 +129,6 @@ int main(void) {
   printf("bucket_cap after bulk insert: %zu\n", set->bucket_cap);
   printf("count after bulk insert: %zu\n", set->count);
 
-  // Manual resize (e.g. to pre-size before a known number of inserts).
   shi_hs_resize(set, 256);
   printf("bucket_cap after manual resize: %zu\n", set->bucket_cap);
   printf("k42 still found after resize: %d\n",
@@ -190,11 +195,9 @@ void resize_hash_set(__hash_set__ *set, size_t new_bucket_cap) {
   __hs_entry__ **new_buckets =
       (__hs_entry__ **)calloc(new_bucket_cap, sizeof(__hs_entry__ *));
   if (!new_buckets)
-    return; // allocation failed; keep old table, just degrade gracefully
+    return; // keep old table on allocation failure rather than corrupting it
 
-  // Re-thread every existing entry into the new bucket array based on its
-  // hash mod new_bucket_cap. Entries are moved (not copied), so no new
-  // allocations or key copies are needed.
+  // entries are re-threaded in place (moved, not copied/reallocated)
   for (size_t i = 0; i < set->bucket_cap; ++i) {
     __hs_entry__ *current = set->buckets[i];
     while (current != NULL) {
@@ -240,9 +243,7 @@ void put_to_hash_set(__hash_set__ *set, const char *key, void *value) {
   set->buckets[index] = entry;
   ++set->count;
 
-  // Grow when load factor (count / bucket_cap) exceeds SHI_HS_LOAD_FACTOR.
-  // Compared as count > bucket_cap * factor, computed in integer-safe form
-  // by cross-multiplying to avoid float division on every insert.
+  // cross-multiplied to dodge float division on every insert
   if ((double)set->count > (double)set->bucket_cap * SHI_HS_LOAD_FACTOR)
     resize_hash_set(set, set->bucket_cap * 2);
 }
@@ -311,6 +312,26 @@ void free_hash_set(__hash_set__ *set) {
     __hs_entry__ *current = set->buckets[i];
     while (current != NULL) {
       __hs_entry__ *temp = current->next;
+      free(current->key);
+      free(current);
+      current = temp;
+    }
+  }
+
+  free(set->buckets);
+  free(set);
+}
+
+void free_hash_set_all(__hash_set__ *set, void (*value_free)(void *)) {
+  if (!set)
+    return;
+
+  for (size_t i = 0; i < set->bucket_cap; ++i) {
+    __hs_entry__ *current = set->buckets[i];
+    while (current != NULL) {
+      __hs_entry__ *temp = current->next;
+      if (value_free)
+        value_free(current->value);
       free(current->key);
       free(current);
       current = temp;
