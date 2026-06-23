@@ -90,8 +90,9 @@ char *read_file(const char *path, size_t *bytes) {
 
   content[file_size] = '\0';
 
-  if (bytes)
+  if (bytes) {
     *bytes = bytes_red;
+  }
   fclose(file);
   return content;
 }
@@ -102,8 +103,9 @@ void write_file(const char *path, const char *buffer, const char *mode) {
     fprintf(stderr, "Failed to open file: %s\n", path);
     exit(EXIT_FAILURE);
   }
-  if (buffer)
+  if (buffer) {
     fputs(buffer, file);
+  }
   fclose(file);
 }
 

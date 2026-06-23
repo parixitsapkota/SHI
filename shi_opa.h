@@ -49,13 +49,11 @@ void free_mem_chain(__mem_block__ *head);
 #define SHI_OPA __mem_block__
 
 /// Init Object Pool.
-#define shi_opa_init(type, block_capa)                                         \
-  (SHI_OPA *)init_mem_block(sizeof(type), block_capa)
+#define shi_opa_init(type, block_capa) (SHI_OPA *)init_mem_block(sizeof(type), block_capa)
 /// Push Object to Object Pool.
 #define shi_opa_push(pool, object) push_to_mem_block((SHI_OPA **)&pool, &object)
 /// Get object at `n' index from Object Pool.
-#define shi_opa_index(pool_head, index)                                        \
-  at_mem_block((SHI_OPA *)pool_head, index)
+#define shi_opa_index(pool_head, index) at_mem_block((SHI_OPA *)pool_head, index)
 /// Destroy Object Pool.
 #define shi_opa_free(pool_head) free_mem_chain((SHI_OPA *)pool_head)
 
@@ -84,8 +82,9 @@ int main(void) {
 
   for (size_t i = 0; buffer[i] != '\0'; ++i) {
     // skip whitespace.
-    if (buffer[i] == ' ')
+    if (buffer[i] == ' ') {
       continue;
+    }
     Obj obj = (Obj){buffer[i], i};
     shi_opa_push(pool, obj);
   }
@@ -94,8 +93,9 @@ int main(void) {
 
   for (size_t i = 0;; ++i) {
     Obj *obj = shi_opa_index(pool_head, i);
-    if (obj->value == '\0')
+    if (obj->value == '\0') {
       break;
+    }
     printf("CHAR : %c\n", obj->value);
   }
 
@@ -112,8 +112,9 @@ int main(void) {
 
 __mem_block__ *init_mem_block(size_t size, size_t cap) {
   __mem_block__ *block = (__mem_block__ *)malloc(sizeof(__mem_block__));
-  if (!block)
+  if (!block) {
     return NULL;
+  }
 
   void *bytes = (void *)malloc(size * cap);
   if (!bytes) {
@@ -126,11 +127,11 @@ __mem_block__ *init_mem_block(size_t size, size_t cap) {
 }
 
 int push_new_mem_block(__mem_block__ **current) {
-  if (!current || !*current)
+  if (!current || !*current) {
     return 0;
+  }
 
-  __mem_block__ *next =
-      init_mem_block((*current)->type_size, (*current)->type_cap);
+  __mem_block__ *next = init_mem_block((*current)->type_size, (*current)->type_cap);
   if (!next) {
     return 0;
   }
@@ -141,8 +142,9 @@ int push_new_mem_block(__mem_block__ **current) {
 }
 
 void push_to_mem_block(__mem_block__ **current, void *object) {
-  if (!current || !*current || !object)
+  if (!current || !*current || !object) {
     return;
+  }
 
   if ((*current)->type_offset >= (*current)->type_cap) {
     if (!push_new_mem_block(current)) {
@@ -151,8 +153,7 @@ void push_to_mem_block(__mem_block__ **current, void *object) {
   }
 
   // Calculate byte Offset
-  char *dest = (char *)(*current)->bytes +
-               ((*current)->type_offset * (*current)->type_size);
+  char *dest = (char *)(*current)->bytes + ((*current)->type_offset * (*current)->type_size);
 
   // Copy the object from refrence
   char *src = (char *)object;
@@ -168,8 +169,7 @@ void *at_mem_block(__mem_block__ *head, size_t index) {
   while (current != NULL) {
     if (index < current->type_cap) {
 
-      char *target_address =
-          (char *)current->bytes + (index * current->type_size);
+      char *target_address = (char *)current->bytes + (index * current->type_size);
       return (void *)target_address;
     }
 

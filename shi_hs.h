@@ -73,8 +73,7 @@ void free_hash_set_all(__hash_set__ *set, void (*value_free)(void *));
 /// Init Hash Set with `cap' buckets.
 #define shi_hs_init(cap) (SHI_HS *)init_hash_set(cap)
 /// Put `key' -> `value' into the Hash Set.
-#define shi_hs_put(set, key, value)                                            \
-  put_to_hash_set((SHI_HS *)set, key, (void *)(value))
+#define shi_hs_put(set, key, value) put_to_hash_set((SHI_HS *)set, key, (void *)(value))
 /// Manually resize the Hash Set to `cap' buckets (also happens automatically).
 #define shi_hs_resize(set, cap) resize_hash_set((SHI_HS *)set, cap)
 /// Get the value for `key' from the Hash Set.
@@ -111,10 +110,11 @@ int main(void) {
   const char *keys[] = {"one", "two", "three", "four"};
   for (size_t i = 0; i < 4; ++i) {
     int *val = (int *)shi_hs_get(set, keys[i]);
-    if (val)
+    if (val) {
       printf("KEY : %s -> %d\n", keys[i], *val);
-    else
+    } else {
       printf("KEY : %s -> (missing)\n", keys[i]);
+    }
   }
 
   shi_hs_del(set, "two");
@@ -131,8 +131,7 @@ int main(void) {
 
   shi_hs_resize(set, 256);
   printf("bucket_cap after manual resize: %zu\n", set->bucket_cap);
-  printf("k42 still found after resize: %d\n",
-         (int)(size_t)shi_hs_get(set, "k42"));
+  printf("k42 still found after resize: %d\n", (int)(size_t)shi_hs_get(set, "k42"));
 
   shi_hs_free(set);
   return 0;
@@ -160,23 +159,26 @@ size_t hash_string(const char *str) {
 static char *__hs_strdup__(const char *str) {
   size_t len = strlen(str) + 1;
   char *copy = (char *)malloc(len);
-  if (!copy)
+  if (!copy) {
     return NULL;
-  for (size_t i = 0; i < len; ++i)
+  }
+  for (size_t i = 0; i < len; ++i) {
     copy[i] = str[i];
+  }
   return copy;
 }
 
 __hash_set__ *init_hash_set(size_t bucket_cap) {
-  if (bucket_cap == 0)
+  if (bucket_cap == 0) {
     bucket_cap = 1;
+  }
 
   __hash_set__ *set = (__hash_set__ *)malloc(sizeof(__hash_set__));
-  if (!set)
+  if (!set) {
     return NULL;
+  }
 
-  __hs_entry__ **buckets =
-      (__hs_entry__ **)calloc(bucket_cap, sizeof(__hs_entry__ *));
+  __hs_entry__ **buckets = (__hs_entry__ **)calloc(bucket_cap, sizeof(__hs_entry__ *));
   if (!buckets) {
     free(set);
     return NULL;
@@ -189,13 +191,14 @@ __hash_set__ *init_hash_set(size_t bucket_cap) {
 }
 
 void resize_hash_set(__hash_set__ *set, size_t new_bucket_cap) {
-  if (!set || new_bucket_cap == 0 || new_bucket_cap == set->bucket_cap)
+  if (!set || new_bucket_cap == 0 || new_bucket_cap == set->bucket_cap) {
     return;
+  }
 
-  __hs_entry__ **new_buckets =
-      (__hs_entry__ **)calloc(new_bucket_cap, sizeof(__hs_entry__ *));
-  if (!new_buckets)
+  __hs_entry__ **new_buckets = (__hs_entry__ **)calloc(new_bucket_cap, sizeof(__hs_entry__ *));
+  if (!new_buckets) {
     return; // keep old table on allocation failure rather than corrupting it
+  }
 
   // entries are re-threaded in place (moved, not copied/reallocated)
   for (size_t i = 0; i < set->bucket_cap; ++i) {
@@ -217,8 +220,9 @@ void resize_hash_set(__hash_set__ *set, size_t new_bucket_cap) {
 }
 
 void put_to_hash_set(__hash_set__ *set, const char *key, void *value) {
-  if (!set || !key)
+  if (!set || !key) {
     return;
+  }
 
   size_t index = hash_string(key) % set->bucket_cap;
   __hs_entry__ *current = set->buckets[index];
@@ -232,8 +236,9 @@ void put_to_hash_set(__hash_set__ *set, const char *key, void *value) {
   }
 
   __hs_entry__ *entry = (__hs_entry__ *)malloc(sizeof(__hs_entry__));
-  if (!entry)
+  if (!entry) {
     return;
+  }
 
   entry->key = __hs_strdup__(key);
   entry->value = value;
@@ -244,43 +249,49 @@ void put_to_hash_set(__hash_set__ *set, const char *key, void *value) {
   ++set->count;
 
   // cross-multiplied to dodge float division on every insert
-  if ((double)set->count > (double)set->bucket_cap * SHI_HS_LOAD_FACTOR)
+  if ((double)set->count > (double)set->bucket_cap * SHI_HS_LOAD_FACTOR) {
     resize_hash_set(set, set->bucket_cap * 2);
+  }
 }
 
 void *get_from_hash_set(__hash_set__ *set, const char *key) {
-  if (!set || !key)
+  if (!set || !key) {
     return NULL;
+  }
 
   size_t index = hash_string(key) % set->bucket_cap;
   __hs_entry__ *current = set->buckets[index];
 
   while (current != NULL) {
-    if (current->in_use && strcmp(current->key, key) == 0)
+    if (current->in_use && strcmp(current->key, key) == 0) {
       return current->value;
+    }
     current = current->next;
   }
   return NULL;
 }
 
 int has_in_hash_set(__hash_set__ *set, const char *key) {
-  if (!set || !key)
+  if (!set || !key) {
     return 0;
+  }
 
   size_t index = hash_string(key) % set->bucket_cap;
   __hs_entry__ *current = set->buckets[index];
 
   while (current != NULL) {
-    if (current->in_use && strcmp(current->key, key) == 0)
+    if (current->in_use && strcmp(current->key, key) == 0) {
       return 1;
+    }
     current = current->next;
   }
   return 0;
 }
 
 int del_from_hash_set(__hash_set__ *set, const char *key) {
-  if (!set || !key)
+  if (!set || !key) {
     return 0;
+  }
 
   size_t index = hash_string(key) % set->bucket_cap;
   __hs_entry__ *current = set->buckets[index];
@@ -288,10 +299,11 @@ int del_from_hash_set(__hash_set__ *set, const char *key) {
 
   while (current != NULL) {
     if (current->in_use && strcmp(current->key, key) == 0) {
-      if (prev)
+      if (prev) {
         prev->next = current->next;
-      else
+      } else {
         set->buckets[index] = current->next;
+      }
 
       free(current->key);
       free(current);
@@ -305,8 +317,9 @@ int del_from_hash_set(__hash_set__ *set, const char *key) {
 }
 
 void free_hash_set(__hash_set__ *set) {
-  if (!set)
+  if (!set) {
     return;
+  }
 
   for (size_t i = 0; i < set->bucket_cap; ++i) {
     __hs_entry__ *current = set->buckets[i];
@@ -323,15 +336,17 @@ void free_hash_set(__hash_set__ *set) {
 }
 
 void free_hash_set_all(__hash_set__ *set, void (*value_free)(void *)) {
-  if (!set)
+  if (!set) {
     return;
+  }
 
   for (size_t i = 0; i < set->bucket_cap; ++i) {
     __hs_entry__ *current = set->buckets[i];
     while (current != NULL) {
       __hs_entry__ *temp = current->next;
-      if (value_free)
+      if (value_free) {
         value_free(current->value);
+      }
       free(current->key);
       free(current);
       current = temp;

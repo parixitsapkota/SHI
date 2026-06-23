@@ -31,8 +31,7 @@ size_t shi_hstr_fnv1a_seed(const char *str, uint32_t seed);
 #include <stdio.h>
 
 #define test_fnv1a(str) printf("%s => %lu\n", str, shi_hstr_fnv1a(str))
-#define test_fnv1a_seed(str, seed)                                             \
-  printf("%s => %lu\n", str, shi_hstr_fnv1a_seed(str, seed))
+#define test_fnv1a_seed(str, seed) printf("%s => %lu\n", str, shi_hstr_fnv1a_seed(str, seed))
 
 int main() {
   printf("Normal hstr\n");

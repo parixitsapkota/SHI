@@ -43,16 +43,18 @@ U32 *shi_utf32_encode(const Rune *buffer, size_t *len);
 // U+000041 U+0000F6 U+0020AC U+01F600
 
 void utf32_print(const Rune *runes, size_t len) {
-  if (!runes)
+  if (!runes) {
     return;
+  }
   for (size_t i = 0; i < len; ++i) {
     printf("Rune : U+%06X\n", runes[i]);
   }
 }
 
 void utf32_print_units(const U32 *buf, size_t len) {
-  if (!buf)
+  if (!buf) {
     return;
+  }
   for (size_t i = 0; i < len; ++i) {
     printf("%08X ", buf[i]);
   }
@@ -84,17 +86,16 @@ int main(void) {
 
 bool shi_is_utf32_surrogate(const U32 c) { return c >= 0xD800 && c <= 0xDFFF; }
 
-bool shi_is_utf32_valid_unit(const U32 c) {
-  return c <= 0x10FFFF && !shi_is_utf32_surrogate(c);
-}
+bool shi_is_utf32_valid_unit(const U32 c) { return c <= 0x10FFFF && !shi_is_utf32_surrogate(c); }
 
 bool shi_is_utf32_unused(const U32 c) { return !shi_is_utf32_valid_unit(c); }
 
 #include <stdlib.h>
 
 Rune *shi_utf32_decode(const U32 *buffer, size_t *len) {
-  if (!buffer || !len)
+  if (!buffer || !len) {
     return NULL;
+  }
 
   size_t length = *len;
   size_t rune_count = 0;
@@ -106,8 +107,9 @@ Rune *shi_utf32_decode(const U32 *buffer, size_t *len) {
   }
 
   Rune *runes = (Rune *)malloc(sizeof(Rune) * rune_count);
-  if (!runes)
+  if (!runes) {
     return NULL;
+  }
 
   size_t i = 0, j = 0;
   while (i < length && j < rune_count) {
@@ -123,8 +125,9 @@ Rune *shi_utf32_decode(const U32 *buffer, size_t *len) {
 }
 
 U32 *shi_utf32_encode(const Rune *buffer, size_t *len) {
-  if (!buffer || !len)
+  if (!buffer || !len) {
     return NULL;
+  }
 
   size_t rune_count = *len;
   size_t unit_count = 0;
@@ -138,8 +141,9 @@ U32 *shi_utf32_encode(const Rune *buffer, size_t *len) {
 
   U32 *out = (U32 *)malloc(sizeof(U32) * unit_count);
   *len = unit_count;
-  if (!out)
+  if (!out) {
     return NULL;
+  }
 
   size_t j = 0;
   for (size_t i = 0; i < rune_count; ++i) {

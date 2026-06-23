@@ -52,16 +52,18 @@ Uchar *shi_utf8_encode(const Rune *buffer, size_t *len);
 // U+000041 U+0000F6 U+0020AC U+01F600
 
 void utf8_print(const Rune *utf8, size_t len) {
-  if (!utf8)
+  if (!utf8) {
     return;
+  }
   for (size_t i = 0; i < len; ++i) {
     printf("Rune : U+%06X\n", utf8[i]);
   }
 }
 
 void utf8_print_units(const Uchar *buf, size_t len) {
-  if (!buf)
+  if (!buf) {
     return;
+  }
   for (size_t i = 0; i < len; ++i) {
     printf("%02X ", buf[i]);
   }
@@ -104,45 +106,39 @@ bool shi_is_utf8_3byte_unit(const Uchar c) { return c >= 0xE0 && c <= 0xEF; }
 
 bool shi_is_utf8_4byte_unit(const Uchar c) { return c >= 0xF0 && c <= 0xF4; }
 
-bool shi_is_utf8_unused(const Uchar c) {
-  return c == 0xC0 || c == 0xC1 || c >= 0xF5;
-}
+bool shi_is_utf8_unused(const Uchar c) { return c == 0xC0 || c == 0xC1 || c >= 0xF5; }
 
-Rune shi_utf8_decode_2byte(const Uchar b1, const Uchar b2) {
-  return ((b1 & 0x1F) << 6) | (b2 & 0x3F);
-}
+Rune shi_utf8_decode_2byte(const Uchar b1, const Uchar b2) { return ((b1 & 0x1F) << 6) | (b2 & 0x3F); }
 
 Rune shi_utf8_decode_3byte(const Uchar b1, const Uchar b2, const Uchar b3) {
   return ((b1 & 0x0F) << 12) | ((b2 & 0x3F) << 6) | (b3 & 0x3F);
 }
 
-Rune shi_utf8_decode_4byte(const Uchar b1, const Uchar b2, const Uchar b3,
-                           const Uchar b4) {
-  return ((b1 & 0x07) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) |
-         (b4 & 0x3F);
+Rune shi_utf8_decode_4byte(const Uchar b1, const Uchar b2, const Uchar b3, const Uchar b4) {
+  return ((b1 & 0x07) << 18) | ((b2 & 0x3F) << 12) | ((b3 & 0x3F) << 6) | (b4 & 0x3F);
 }
 
 #include <stdlib.h>
 
 Rune *shi_utf8_decode(const Uchar *buffer, size_t *len) {
-  if (!buffer || !len)
+  if (!buffer || !len) {
     return NULL;
+  }
 
   size_t length = *len;
   size_t rune_count = 0;
 
   for (size_t i = 0; i < length; ++i) {
-    if (shi_is_utf8_1byte_unit(buffer[i]) ||
-        shi_is_utf8_2byte_unit(buffer[i]) ||
-        shi_is_utf8_3byte_unit(buffer[i]) ||
+    if (shi_is_utf8_1byte_unit(buffer[i]) || shi_is_utf8_2byte_unit(buffer[i]) || shi_is_utf8_3byte_unit(buffer[i]) ||
         shi_is_utf8_4byte_unit(buffer[i])) {
       ++rune_count;
     }
   }
 
   Rune *utf8 = (Rune *)malloc(sizeof(Rune) * rune_count);
-  if (!utf8)
+  if (!utf8) {
     return NULL;
+  }
 
   size_t i = 0, j = 0;
   while (i < length && j < rune_count) {
@@ -153,12 +149,10 @@ Rune *shi_utf8_decode(const Uchar *buffer, size_t *len) {
       utf8[j++] = shi_utf8_decode_2byte(buffer[i], buffer[i + 1]);
       i += 2;
     } else if (shi_is_utf8_3byte_unit(buffer[i]) && i + 2 < length) {
-      utf8[j++] =
-          shi_utf8_decode_3byte(buffer[i], buffer[i + 1], buffer[i + 2]);
+      utf8[j++] = shi_utf8_decode_3byte(buffer[i], buffer[i + 1], buffer[i + 2]);
       i += 3;
     } else if (shi_is_utf8_4byte_unit(buffer[i]) && i + 3 < length) {
-      utf8[j++] = shi_utf8_decode_4byte(buffer[i], buffer[i + 1], buffer[i + 2],
-                                        buffer[i + 3]);
+      utf8[j++] = shi_utf8_decode_4byte(buffer[i], buffer[i + 1], buffer[i + 2], buffer[i + 3]);
       i += 4;
     } else {
       i += 1;
@@ -170,8 +164,9 @@ Rune *shi_utf8_decode(const Uchar *buffer, size_t *len) {
 }
 
 Uchar *shi_utf8_encode(const Rune *buffer, size_t *len) {
-  if (!buffer || !len)
+  if (!buffer || !len) {
     return NULL;
+  }
 
   size_t rune_count = *len;
   size_t unit_count = 0;
@@ -192,8 +187,9 @@ Uchar *shi_utf8_encode(const Rune *buffer, size_t *len) {
 
   Uchar *out = (Uchar *)malloc(sizeof(Uchar) * unit_count);
   *len = unit_count;
-  if (!out)
+  if (!out) {
     return NULL;
+  }
 
   size_t j = 0;
   for (size_t i = 0; i < rune_count; ++i) {
