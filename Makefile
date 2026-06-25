@@ -1,6 +1,6 @@
 # --- Configuration ---
 CC      := clang
-CFLAGS  := -fsanitize=address -g -O0 -Wall -Wextra
+CFLAGS  := -fsanitize=address -g -O0 -Wall -Wextra -Werror
 BUILD   := build
 
 HEADERS := $(wildcard *.h)

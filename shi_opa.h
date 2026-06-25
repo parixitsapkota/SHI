@@ -37,7 +37,7 @@ int push_new_mem_block(__mem_block__ **current);
 /// Pushes an object into the memory block.
 /// Takes a pointer refrence so it can automatically append a new block if the
 /// current one is full.
-void push_to_mem_block(__mem_block__ **current, void *object);
+void *push_to_mem_block(__mem_block__ **current, void *object);
 
 /// Returns the oblect at `n' index
 void *at_mem_block(__mem_block__ *head, size_t index);
@@ -141,27 +141,26 @@ int push_new_mem_block(__mem_block__ **current) {
   return 1;
 }
 
-void push_to_mem_block(__mem_block__ **current, void *object) {
+void *push_to_mem_block(__mem_block__ **current, void *object) {
   if (!current || !*current || !object) {
-    return;
+    return NULL;
   }
 
   if ((*current)->type_offset >= (*current)->type_cap) {
     if (!push_new_mem_block(current)) {
-      return;
+      return NULL;
     }
   }
 
-  // Calculate byte Offset
-  char *dest = (char *)(*current)->bytes + ((*current)->type_offset * (*current)->type_size);
+  uint8_t *dest = (uint8_t *)(*current)->bytes + ((*current)->type_offset * (*current)->type_size);
 
-  // Copy the object from refrence
   char *src = (char *)object;
   for (size_t i = 0; i < (*current)->type_size; ++i) {
     dest[i] = src[i];
   }
 
   ++(*current)->type_offset;
+  return (void *)dest;
 }
 
 void *at_mem_block(__mem_block__ *head, size_t index) {
